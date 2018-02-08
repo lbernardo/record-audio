@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Enviar audios pela tela do agente</title>
+    <style>
+        audio{
+            display: inherit;
+        }
+    </style>
+</head>
+<body>
+    <button id="record">Gravar audio</button>
+    <script type="text/javascript">
+        var record = document.querySelector("#record");
+        var mediaRecord;
+        var initRecord =  false;
+        
+        record.onclick = function(){
+            // Verifica se tem suporte para gravar audio
+            if(navigator.mediaDevices.getUserMedia){
+                if(!initRecord){
+                    initRecord = true;
+                    navigator.mediaDevices.getUserMedia({ audio: true }).then(onSuccess, onError);
+                }else{
+                    initRecord = false;
+                    mediaRecorder.stop();
+                }
+            }else{
+                alert("Seu navegador não tem suporte para isso!");
+            }
+        };
+
+
+        function onSuccess(stream){
+            console.log(stream);
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+
+            mediaRecorder.onstop = function(){
+                console.log("STOP");
+            }
+
+            mediaRecorder.ondataavailable = function(e) {
+                 var d = new Blob([e.data], { 'type' : 'audio/ogg; codecs=opus' });
+                 var url = window.URL.createObjectURL(d);
+                 var reader = new FileReader();
+                reader.readAsDataURL(d); 
+                reader.onloadend = function() {
+                    base64data = reader.result;                
+                    console.log(base64data);
+                };
+                var audio = document.createElement("audio");
+                audio.src = url;
+                audio.setAttribute('controls', '')
+                document.body.appendChild(audio);
+            };
+
+        }
+        function onError(){
+            console.error("Erro ao iniciar a gravação");
+        }
+    
+        
+    </script>
+</body>
+</html>
